@@ -20,13 +20,14 @@ void main(int argc, char *argv[]) {
     rewind(fd);
     uint8_t *buf = malloc(sz);
     fread(buf, 1, sz, fd);
-    
     elf->data = buf;
-    elf->size = sz;
+    identify_arch(elf);
+    switch(elf->arch) {
+        case EM_X86_64:
+            Elf64_Ehdr *header = get_elf_header64(buf);
+            break;
 
-    /*
-    build_ph_list(buf, elf_header);
-    build_sh_list(buf, elf_header);
-    */
+
+    }
 
 }

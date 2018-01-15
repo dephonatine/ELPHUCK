@@ -222,13 +222,11 @@ typedef struct {
     Elf32_Word          sh_entsize;
 } __packed Elf32_Shdr;
 
-/*
 typedef struct {
     void        *data;
     uint8_t     arch;
     size_t      size;
 } __packed Elf_Data;
-*/
 /* Legal values for p_type (segment type).  */
 
 #define	PT_NULL		0		/* Program header table entry unused */

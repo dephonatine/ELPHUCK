@@ -15,85 +15,75 @@ extern Elf32_Shdr *sh_list32[100];
 
 
 #define DEF_GET_PH(BITS) \
-	Elf ## BITS ## _Phdr *get_program_header(void *ptr){ \
-        Elf ## BITS ## _Phdr *header = malloc(sizeof(Elf ## BITS ## _Phdr)); \
-        memcpy(header, ptr, sizeof(Elf ## BITS ## _Phdr); \
+	Elf ## BITS ## _Phdr *get_program_header ## BITS (void *ptr){ \
+        Elf ## BITS ## _Phdr *header = malloc(sizeof(Elf ## BITS ## _Phdr)+1); \
+        memcpy(header, ptr, sizeof(Elf ## BITS ## _Phdr)); \
         return header; \
-    }
-DEF_GET_PH(32)
+}
+
 #define DEF_GET_SH(BITS) \
-    Elf ## BITS ## _Shdr *get_section_header(void *ptr) { \
-        Elf ## BITS ## _Shdr *header = malloc(sizeof(Elf ## BITS ## _Shdr)); \
-        memcpy(header, ptr, sizeof(ELF ## BITS ## _Shdr)); \
+	Elf ## BITS ## _Shdr *get_section_header ## BITS (void *ptr){ \
+        Elf ## BITS ## _Shdr *header = malloc(sizeof(Elf ## BITS ## _Shdr)+1); \
+        memcpy(header, ptr, sizeof(Elf ## BITS ## _Shdr)); \
         return header; \
-    }
-/*
-#define DEF_BUILD_PH(BITS) \
-    void build_ph_list(void *buf, Elf_Ehdr *elf) { \
-        void *ptr = (buf + elf.header ## BITS ## ->e_phoff); \
-        for(int i = 0; i < elf.header ## BITS ## ->e_phnum; i++) {\
-            ph_list ## BITS ## [i] = get_program_header(ptr); \
-            ptr += elf.header ## BITS ## ->e_phentsize; \
-        } \
-    }
+}
+
 
 #define DEF_BUILD_SH(BITS) \
-    void build_sh_list(void *buf, Elf_Ehdr *elf) { \
-        void *ptr = (buf + elf.header ## BITS ## ->e_shoff); \
-        for(int i = 0; i < elf.header ## BITS ## ->e_shnum; i++) {\
-            sh_list ## BITS ## [i] = get_program_header(ptr); \
-            ptr += elf.header ## BITS ## ->e_shentsize; \
-        } \
-    }
-*/
+	Elf ## BITS ## _Shdr *build_sh_list ## BITS (void *buf, Elf ## BITS ## _Ehdr *elf){ \
+        void *ptr = (buf + elf->e_shoff); \
+        for(int i = 0; i < elf->e_shnum; i++) { \
+            sh_list ## BITS [i] = get_section_header ## BITS (ptr); \
+            ptr += elf->e_shentsize; \
+        } \       
+}
 
 
+#define DEF_BUILD_PH(BITS) \
+	Elf ## BITS ## _Phdr *build_ph_list ## BITS (void *buf, Elf ## BITS ## _Ehdr *elf){ \
+        void *ptr = (buf + elf->e_phoff); \
+        for(int i = 0; i < elf->e_phnum; i++) { \
+            ph_list ## BITS [i] = get_program_header ## BITS (ptr); \
+            ptr += elf->e_phentsize; \
+        } \       
+}
 
-Elf_Ehdr *get_elf_header(Elf_Data *elf) {
+
+#define DEF_BUILD_EH(BITS) \
+	Elf ## BITS ## _Ehdr *get_elf_header ## BITS (void *ptr){ \
+        Elf ## BITS ## _Ehdr *header = malloc(sizeof(Elf ## BITS ## _Ehdr)+1); \
+        memcpy(header, ptr, sizeof(Elf ## BITS ## _Ehdr)); \
+        return header; \
+}
+
+
+DEF_GET_PH(32)
+DEF_GET_PH(64)
+DEF_GET_SH(32)
+DEF_GET_SH(64)
+DEF_BUILD_SH(32)
+DEF_BUILD_SH(64)
+DEF_BUILD_PH(32)
+DEF_BUILD_PH(64)
+DEF_BUILD_EH(32)
+DEF_BUILD_EH(64)
+    
+void identify_arch(Elf_Data *elf) {
     Elf_Ehdr header;
-    uint8_t bits;
     header.header64 = (Elf64_Ehdr *)elf->data;
-    switch(header.header64->e_ident[EI_CLASS]) { 
+    switch(header.header64->e_ident[EI_CLASS]) {
         case ELFCLASS32:
-            bits = 32;
+            elf->arch = EM_386;
             break;
         case ELFCLASS64:
-            bits = 64;
+            elf->arch = EM_X86_64;
             break;
-        default:
-            bits = 0;
     }
+
 }
 
+    
 /*
-Elf64_Phdr *get_program_header(void *ptr) {
-    Elf64_Phdr *header = malloc(sizeof(Elf64_Phdr));
-    memcpy(header, ptr, sizeof(Elf64_Phdr));
-    return header;
-}
-
-Elf64_Shdr *get_section_header(void *ptr) { 
-    Elf64_Shdr *header = malloc(sizeof(Elf64_Shdr));
-    memcpy(header, ptr, sizeof(Elf64_Shdr));
-    return header;
-}
-
-void build_ph_list(void *buf, Elf64_Ehdr *elf) { 
-    void *ptr = (buf + elf->e_phoff);
-    for(int i = 0; i < elf->e_phnum; i++) { 
-        ph_list[i] = get_program_header(ptr);
-        ptr += elf->e_phentsize;
-    }
-}
-
-
-void build_sh_list(void *buf, Elf64_Ehdr *elf) {
-    void *ptr = (buf + elf->e_shoff);
-    for(int i = 0; i < elf->e_shnum; i++) {
-        sh_list[i] = get_section_header(ptr);
-        ptr += elf->e_shentsize;
-    }
-}
 uint8_t find_section(void *buf, Elf64_Ehdr *elf, uint8_t *section) { 
     uint8_t index = 0;
     uint64_t base = 0;
