@@ -16,7 +16,14 @@
    You should have received a copy of the GNU Lesser General Public
    License along with the GNU C Library; if not, write to the Free
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-   02111-1307 USA.  */
+   02111-1307 USA.  
+   
+Thought:
+
+Why do we laugh at those who play the lottery, but not at those who think our existence is due to a long process with nearly impossible odds?
+
+ */
+
 
 /* elf.h is a re-implementation of ELF headers *
  * so they are exactly identical on all platforms
@@ -46,6 +53,7 @@ typedef uint64_t Elf64_Addr;
 typedef uint32_t Elf32_Off;
 typedef uint64_t Elf64_Off;
 
+#define __packed __attribute__((packed))
 
 /* The ELF file header.  This appears at the start of every ELF file.  */
 
@@ -67,7 +75,7 @@ typedef struct
   Elf32_Half	e_shentsize;		/* Section header table entry size */
   Elf32_Half	e_shnum;		/* Section header table entry count */
   Elf32_Half	e_shstrndx;		/* Section header string table index */
-} Elf32_Ehdr;
+} __packed Elf32_Ehdr;
 
 typedef struct
 {
@@ -85,7 +93,12 @@ typedef struct
   Elf64_Half	e_shentsize;		/* Section header table entry size */
   Elf64_Half	e_shnum;		/* Section header table entry count */
   Elf64_Half	e_shstrndx;		/* Section header string table index */
-} __attribute__((packed))Elf64_Ehdr;
+} __packed Elf64_Ehdr;
+
+typedef union {
+    Elf64_Ehdr *header64;
+    Elf32_Ehdr *header32;
+} Elf_Ehdr;
 
 /* Fields in the e_ident array.  The EI_* macros are indices into the
    array.  The macros under each EI_* macro are the values the byte
@@ -168,7 +181,7 @@ typedef struct
   Elf32_Word	p_memsz;		/* Segment size in memory */
   Elf32_Word	p_flags;		/* Segment flags */
   Elf32_Word	p_align;		/* Segment alignment */
-} Elf32_Phdr;
+} __packed Elf32_Phdr;
 
 typedef struct
 {
@@ -180,7 +193,7 @@ typedef struct
   Elf64_Xword	p_filesz;		/* Segment size in file */
   Elf64_Xword	p_memsz;		/* Segment size in memory */
   Elf64_Xword	p_align;		/* Segment alignment */
-} __attribute__((packed)) Elf64_Phdr;
+} __packed Elf64_Phdr;
 
 
 typedef struct { 
@@ -194,8 +207,28 @@ typedef struct {
     Elf64_Word          sh_info;
     Elf64_Xword         sh_addralign;
     Elf64_Xword         sh_entsize;
-} __attribute__((packed)) Elf64_Shdr;
+} __packed Elf64_Shdr;
 
+typedef struct {
+    Elf32_Word          sh_name;
+    Elf32_Word          sh_type;
+    Elf32_Word          sh_flags;
+    Elf32_Addr          sh_addr;
+    Elf32_Word          sh_offset;
+    Elf32_Word          sh_size;
+    Elf32_Word          sh_link;
+    Elf32_Word          sh_info;
+    Elf32_Word          sh_addralign;
+    Elf32_Word          sh_entsize;
+} __packed Elf32_Shdr;
+
+/*
+typedef struct {
+    void        *data;
+    uint8_t     arch;
+    size_t      size;
+} __packed Elf_Data;
+*/
 /* Legal values for p_type (segment type).  */
 
 #define	PT_NULL		0		/* Program header table entry unused */
