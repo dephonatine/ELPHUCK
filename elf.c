@@ -12,7 +12,7 @@ extern Elf64_Phdr *ph_list64[100];
 extern Elf64_Shdr *sh_list64[100];
 extern Elf32_Phdr *ph_list32[100];
 extern Elf32_Shdr *sh_list32[100];
-
+extern uint8_t *section_list[100];
 
 #define DEF_GET_PH(BITS) \
 	Elf ## BITS ## _Phdr *get_program_header ## BITS (void *ptr){ \
@@ -82,26 +82,35 @@ void identify_arch(Elf_Data *elf) {
 
 }
 
-    
-/*
+/* this works by some miracle */
 uint8_t find_section(void *buf, Elf64_Ehdr *elf, uint8_t *section) { 
     uint8_t index = 0;
     uint64_t base = 0;
     for(int i = 0; i < elf->e_shnum; i++) {
-        if (sh_list[i]->sh_type == SHT_STRTAB && !sh_list[i]->sh_flags && 
-            (sh_list[i]->sh_offset > sh_list[i+1]->sh_offset)) {
+        if (sh_list64[i]->sh_type == SHT_STRTAB && !sh_list64[i]->sh_flags && 
+            (sh_list64[i]->sh_offset > sh_list64[i+1]->sh_offset)) {
                 index = i;
-                base = sh_list[index]->sh_offset;
+                base = sh_list64[index]->sh_offset;
                 break;      
         }
     }
 
     for(int i = 0; i < elf->e_shnum; i++) { 
-        if(!strcmp((char *)(buf + base + sh_list[i]->sh_name), section)) {
+        if(!strcmp((char *)(buf + base + sh_list64[i]->sh_name), section)) {
             printf("[^] Found %s\n", section);
             return i;
         }
 
     }
 }
-*/
+
+
+void find_all_sections(void *buf, Elf64_Ehdr *elf, uint8_t *sections[]) {
+    uint8_t idx;
+    for(int i = 0; i < 4; i++) {
+        idx = find_section(buf, elf, sections[i]);
+        section_list[idx] = sections[i];
+    }
+
+    return;
+}
