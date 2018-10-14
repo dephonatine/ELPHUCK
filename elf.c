@@ -6,7 +6,6 @@
 
 /* elf data/manipulation library */
 /* 32-bit support coming later */
-/* author: doc */
 
 extern Elf64_Phdr *ph_list64[100];
 extern Elf64_Shdr *sh_list64[100];
