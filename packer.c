@@ -3,10 +3,6 @@
 #include <fcntl.h>
 #include <assert.h>
 #include "elf.h"
-/*
- * written by: doc
-*/
-
 
 Elf64_Phdr *ph_list64[100];
 Elf64_Shdr *sh_list64[100];
